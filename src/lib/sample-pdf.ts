@@ -1,11 +1,9 @@
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import {
-	reviewFields,
 	rolesFor,
 	SAMPLE_PAGE,
-	SAMPLE_ROWS,
-	SAMPLE_WIDTH,
 	SAMPLE_X,
+	samplePlacements,
 } from './example-config';
 
 /** PDF generation and field placement use the same top-left PDF-point layout. */
@@ -13,7 +11,7 @@ export async function samplePdf(multiple = false) {
 	const pdf = await PDFDocument.create();
 	const font = await pdf.embedFont(StandardFonts.Helvetica);
 	const bold = await pdf.embedFont(StandardFonts.HelveticaBold);
-	const fields = reviewFields(multiple);
+	const fields = samplePlacements(multiple);
 	for (const { name } of rolesFor(multiple)) {
 		const page = pdf.addPage([SAMPLE_PAGE.width, SAMPLE_PAGE.height]);
 		page.drawText('EXAMPLE AGREEMENT', {
@@ -30,17 +28,20 @@ export async function samplePdf(multiple = false) {
 		});
 		fields
 			.filter((f) => f.signerRoleName === name)
-			.forEach((f, i) => {
-				const y = SAMPLE_ROWS[i];
+			.forEach((f) => {
+				const y = f.yPosition;
 				page.drawText(f.label, {
-					x: SAMPLE_X,
+					x: f.xPosition,
 					y: SAMPLE_PAGE.height - y + 12,
 					size: 11,
 					font,
 				});
 				page.drawLine({
-					start: { x: SAMPLE_X, y: SAMPLE_PAGE.height - y - 32 },
-					end: { x: SAMPLE_X + SAMPLE_WIDTH, y: SAMPLE_PAGE.height - y - 32 },
+					start: { x: f.xPosition, y: SAMPLE_PAGE.height - y - f.height },
+					end: {
+						x: f.xPosition + f.width,
+						y: SAMPLE_PAGE.height - y - f.height,
+					},
 					thickness: 0.6,
 					color: rgb(0.4, 0.4, 0.4),
 				});

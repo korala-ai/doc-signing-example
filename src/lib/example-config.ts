@@ -3,12 +3,14 @@ import {
 	type SignerDto,
 	type TemplatePreparationFieldDto,
 	TemplatePreparationMode,
+	type TemplateSignerRoleDto,
 } from '@korala/api-client';
 
 export const EXAMPLE_ROLES = ['Recipient', 'Approver'] as const;
 export const SAMPLE_PAGE = { width: 600, height: 800 };
 export const SAMPLE_X = 48;
 export const SAMPLE_WIDTH = 372;
+export const SAMPLE_FIELD_HEIGHT = 32;
 export const SAMPLE_ROWS = [165, 275, 385, 495, 605] as const;
 
 export function rolesFor(multiple: boolean) {
@@ -96,4 +98,31 @@ export function signersInOrder(
 			throw new Error('The generated document is missing its signer links.');
 		return matches[0];
 	});
+}
+
+/** Known geometry for our generated PDF only; never apply this to an uploaded PDF. */
+export function samplePlacements(multiple: boolean) {
+	const roles = rolesFor(multiple);
+	return reviewFields(multiple).map((spec, i) => ({
+		...spec,
+		pageNumber:
+			roles.findIndex((role) => role.name === spec.signerRoleName) + 1,
+		xPosition: SAMPLE_X,
+		yPosition: SAMPLE_ROWS[i % SAMPLE_ROWS.length],
+		width: SAMPLE_WIDTH,
+		height: SAMPLE_FIELD_HEIGHT,
+	}));
+}
+
+export function sampleTemplateFields(
+	multiple: boolean,
+	roles: TemplateSignerRoleDto[],
+) {
+	return samplePlacements(multiple).map(
+		({ signerRoleName, removable: _removable, ...field }) => {
+			const role = roles.find((role) => role.name === signerRoleName);
+			if (!role) throw new Error('Sample signer role is missing.');
+			return { ...field, signerRoleId: role.id };
+		},
+	);
 }

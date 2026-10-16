@@ -99,6 +99,7 @@ export function SigningDemo({
 					<button
 						type="button"
 						className="secondary"
+						disabled={busy}
 						onClick={() => {
 							setSession(null);
 							setVerified(null);

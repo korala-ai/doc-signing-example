@@ -38,7 +38,7 @@ Both preparation modes are available:
 Choose either upload path:
 
 - **Upload inside Korala:** the embed handles PDF upload and preparation. Download the matching one- or two-party sample from the form to try it.
-- **Upload in this app:** this backend uploads a PDF, confirms it with automatic AcroForm import explicitly disabled, creates the roles, and requests a session for that template. The embed opens directly in the field editor. Leaving the file empty uses the matching sample; custom files are limited to 20 MB by this example.
+- **Upload in this app:** this backend uploads a PDF, confirms it with automatic AcroForm import explicitly disabled, creates the roles, and requests a session for that template. The embed opens directly in the field editor. Leaving the file empty uses the matching sample. In Review mode, the backend seeds that generated PDF with its known field geometry before opening the editor. This is a deterministic sample layout, not an AI result. Custom files use AI or manual positioning and are limited to 20 MB by this example.
 
 After `onComplete` returns the approved template ID, the backend verifies ownership, session completion, and template state. Reopening creates a fresh session for the same template. Signing maps each template role ID to its participant.
 

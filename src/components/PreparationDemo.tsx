@@ -90,6 +90,7 @@ export function PreparationDemo({ signingUrl }: { signingUrl: string }) {
 					<button
 						type="button"
 						className="secondary"
+						disabled={busy}
 						onClick={() => {
 							setSession(null);
 							setApproved(null);
@@ -171,7 +172,8 @@ export function PreparationDemo({ signingUrl }: { signingUrl: string }) {
 								/>
 								<p className="hint">
 									Choose a PDF up to 20 MB, or leave empty to use the matching
-									sample.
+									sample. In Review mode, the backend positions sample fields on
+									their known blanks; custom PDFs use AI or manual positioning.
 								</p>
 							</div>
 						)}
@@ -239,7 +241,11 @@ export function PreparationDemo({ signingUrl }: { signingUrl: string }) {
 						or create a document and try filling it.
 					</p>
 					<div className="form-actions">
-						<button type="button" onClick={() => setSigning(true)}>
+						<button
+							type="button"
+							disabled={busy}
+							onClick={() => setSigning(true)}
+						>
 							Use template to sign
 						</button>
 						<button

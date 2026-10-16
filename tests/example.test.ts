@@ -1,6 +1,10 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { FieldType, type SignerDto } from '@korala/api-client';
+import {
+	FieldType,
+	type SignerDto,
+	type TemplateSignerRoleDto,
+} from '@korala/api-client';
 import { PDFDocument } from 'pdf-lib';
 import {
 	capacity,
@@ -17,6 +21,8 @@ import {
 	SAMPLE_ROWS,
 	SAMPLE_WIDTH,
 	SAMPLE_X,
+	samplePlacements,
+	sampleTemplateFields,
 	signersInOrder,
 } from '../src/lib/example-config';
 import { samplePdf } from '../src/lib/sample-pdf';
@@ -93,8 +99,8 @@ test('follow-up actions reject resources outside the demo session and enforce bo
 	assert.equal(ownedTemplate(session, 'template').token, 'server-only');
 	assert.throws(() => ownedDocument(session, 'foreign'));
 	assert.throws(() => ownedTemplate(session, 'foreign'));
-	capacity(session, 2);
-	assert.throws(() => capacity(session, 12));
+	capacity(session, { documents: 2 });
+	assert.throws(() => capacity(session, { documents: 12 }));
 });
 
 test('sample PDF pages and API field positions share a layout that fits on each page', async () => {
@@ -125,4 +131,45 @@ test('template signers map by configured order even when API roles are generic a
 	assert.throws(() =>
 		signersInOrder([{ ...signers[1], accessToken: '' }], [1]),
 	);
+});
+
+test('known sample placements align each role with its own page and the PDF blank geometry', () => {
+	const roles = [
+		{ id: 'r', name: 'Recipient', signingOrder: 1 },
+		{ id: 'a', name: 'Approver', signingOrder: 2 },
+	] as TemplateSignerRoleDto[];
+	const fields = sampleTemplateFields(true, roles);
+	assert.equal(fields.length, 10);
+	for (const [index, field] of fields.entries()) {
+		assert.equal(field.signerRoleId, index < 5 ? 'r' : 'a');
+		assert.equal(field.pageNumber, index < 5 ? 1 : 2);
+		assert.equal(field.xPosition, 48);
+		assert.equal(field.yPosition, [165, 275, 385, 495, 605][index % 5]);
+		assert.equal(field.width, 372);
+		assert.equal(field.height, 32);
+		assert.ok(!('removable' in field));
+	}
+	assert.deepEqual(
+		samplePlacements(false).map((f) => f.mergeFieldName),
+		reviewFields(false).map((f) => f.mergeFieldName),
+	);
+	assert.throws(() => sampleTemplateFields(true, roles.slice(0, 1)));
+});
+
+test('exhausted template or packet capacity does not block independent document creation', () => {
+	const session: DemoSession = {
+		expires: 0,
+		documents: new Map(),
+		templates: new Map(),
+		packets: new Set(),
+	};
+	for (let i = 0; i < 6; i++)
+		session.templates.set(String(i), {
+			config: preparationConfig('review', false, 'http://localhost:3007'),
+			token: 'scoped',
+		});
+	for (let i = 0; i < 4; i++) session.packets.add(String(i));
+	capacity(session, { documents: 1 });
+	assert.throws(() => capacity(session, { templates: 1 }));
+	assert.throws(() => capacity(session, { documents: 2, packets: 1 }));
 });

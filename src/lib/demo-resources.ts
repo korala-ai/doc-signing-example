@@ -8,11 +8,14 @@ export interface DemoSession {
 	>;
 	packets: Set<string>;
 }
-export function capacity(session: DemoSession, documents: number) {
+export function capacity(
+	session: DemoSession,
+	requested: { documents?: number; templates?: number; packets?: number },
+) {
 	if (
-		session.documents.size + documents > 12 ||
-		session.templates.size >= 6 ||
-		session.packets.size >= 4
+		session.documents.size + (requested.documents ?? 0) > 12 ||
+		session.templates.size + (requested.templates ?? 0) > 6 ||
+		session.packets.size + (requested.packets ?? 0) > 4
 	)
 		throw new Error(
 			'This demo session reached its limit. Restart the example server to reset local demo state.',
