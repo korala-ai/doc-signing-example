@@ -1,109 +1,111 @@
-import { BatchCountersignFlow } from '@/components/BatchCountersignFlow';
-import { DualSigningFlow } from '@/components/DualSigningFlow';
-import { SigningFlow } from '@/components/SigningFlow';
+import { PacketDemo } from '@/components/PacketDemo';
+import { PreparationDemo } from '@/components/PreparationDemo';
+import { SigningDemo } from '@/components/SigningDemo';
+import { signingUrl } from '@/lib/korala';
 
-export default function HomePage({
-  searchParams,
+const examples = [
+	{ id: 'signing', label: 'Embedded signing' },
+	{ id: 'templates', label: 'Template preparation' },
+	{ id: 'multiple', label: 'Multiple signers' },
+	{ id: 'packets', label: 'Signing packets' },
+];
+export default async function Home({
+	searchParams,
 }: {
-  searchParams: Promise<{ tab?: string; status?: string }>;
+	searchParams: Promise<{ example?: string }>;
 }) {
-  return <HomeContent searchParams={searchParams} />;
-}
-
-async function HomeContent({
-  searchParams,
-}: {
-  searchParams: Promise<{ tab?: string; status?: string }>;
-}) {
-  const params = await searchParams;
-  const tab = params.tab || 'basic';
-  const status = params.status;
-
-  return (
-    <div className="flex h-screen flex-col bg-zinc-50">
-      {/* Header */}
-      <header className="shrink-0 border-b border-zinc-200 bg-white">
-        <div className="mx-auto max-w-4xl px-4 py-4">
-          <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 text-sm font-bold text-white">
-              K
-            </div>
-            <div>
-              <h1 className="font-semibold text-zinc-900">
-                Korala Integration Example
-              </h1>
-              <p className="text-xs text-zinc-500">
-                Document signing powered by Korala
-              </p>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Tab navigation */}
-      <div className="shrink-0 border-b border-zinc-200 bg-white">
-        <div className="mx-auto flex max-w-4xl gap-0 px-4">
-          <a
-            href="?tab=basic"
-            className={`border-b-2 px-4 py-3 text-sm font-medium ${
-              tab === 'basic'
-                ? 'border-blue-600 text-blue-600'
-                : 'border-transparent text-zinc-500 hover:text-zinc-700'
-            }`}
-          >
-            Basic Signing
-          </a>
-          <a
-            href="?tab=multi"
-            className={`border-b-2 px-4 py-3 text-sm font-medium ${
-              tab === 'multi'
-                ? 'border-blue-600 text-blue-600'
-                : 'border-transparent text-zinc-500 hover:text-zinc-700'
-            }`}
-          >
-            Multi-Signer Demo
-          </a>
-          <a
-            href="?tab=batch"
-            className={`border-b-2 px-4 py-3 text-sm font-medium ${
-              tab === 'batch'
-                ? 'border-blue-600 text-blue-600'
-                : 'border-transparent text-zinc-500 hover:text-zinc-700'
-            }`}
-          >
-            Batch Countersign
-          </a>
-        </div>
-      </div>
-
-      {status && (
-        <div className="shrink-0 border-b border-green-200 bg-green-50 px-4 py-3">
-          <div className="mx-auto max-w-4xl text-sm text-green-800">
-            Redirect received: <code className="font-mono">{status}</code>
-          </div>
-        </div>
-      )}
-
-      {/* Main content */}
-      <main className="mx-auto w-full max-w-4xl flex-1 overflow-hidden px-4 py-8">
-        {tab === 'batch' ? (
-          <BatchCountersignFlow />
-        ) : tab === 'multi' ? (
-          <DualSigningFlow />
-        ) : (
-          <SigningFlow />
-        )}
-      </main>
-
-      {/* Footer */}
-      <footer className="shrink-0 border-t border-zinc-200 bg-white">
-        <div className="mx-auto max-w-4xl px-4 py-4">
-          <p className="text-center text-xs text-zinc-500">
-            This is an example integration. Configure your template ID in the
-            environment variables.
-          </p>
-        </div>
-      </footer>
-    </div>
-  );
+	const { example } = await searchParams;
+	const selected = examples.some((e) => e.id === example) ? example : 'signing';
+	const configured = Boolean(
+		process.env.KORALA_API_KEY_ID && process.env.KORALA_API_SECRET,
+	);
+	return (
+		<>
+			<header className="site-header">
+				<a href="/" className="wordmark">
+					Korala<span> / examples</span>
+				</a>
+				<a href="https://docs.korala.ai" target="_blank" rel="noreferrer">
+					Documentation ↗
+				</a>
+			</header>
+			<main>
+				<div className="page-heading">
+					<p className="eyebrow">Next.js · TypeScript · Public SDKs</p>
+					<h1>Document signing, inside your application.</h1>
+					<p>
+						Prepare a reusable template, collect signatures, or review a packet.
+						Try the working flow, then follow the server and React code.
+					</p>
+					<div className="versions">
+						<span>API client 1.33</span>
+						<span>React SDK 1.4</span>
+						<span>Credentials stay on your server</span>
+					</div>
+				</div>
+				<nav className="example-tabs" aria-label="Integration examples">
+					{examples.map((e) => (
+						<a
+							key={e.id}
+							href={`?example=${e.id}`}
+							aria-current={selected === e.id ? 'page' : undefined}
+						>
+							{e.label}
+						</a>
+					))}
+				</nav>
+				<section className="example-panel" key={selected}>
+					{!configured ? (
+						<div className="setup">
+							<p className="eyebrow">One-time setup</p>
+							<h2>Connect your Korala test account.</h2>
+							<p>
+								Copy <code>.env.example</code> to <code>.env.local</code>, add
+								your server-side API credentials, then restart this app.
+							</p>
+							<pre>{`KORALA_API_URL=https://api.korala.ai/api/v1
+KORALA_API_KEY_ID=your-test-key-id
+KORALA_API_SECRET=your-test-key-secret
+EXAMPLE_ORIGIN=http://localhost:3007
+NEXT_PUBLIC_SIGNING_URL=https://korala.ai`}</pre>
+							<p>
+								No preconfigured template is needed. The examples generate a
+								synthetic PDF.
+							</p>
+						</div>
+					) : selected === 'templates' ? (
+						<PreparationDemo signingUrl={signingUrl()} />
+					) : selected === 'packets' ? (
+						<PacketDemo />
+					) : (
+						<SigningDemo
+							multiple={selected === 'multiple'}
+							signingUrl={signingUrl()}
+						/>
+					)}
+				</section>
+				<aside className="source-note">
+					<strong>Follow the integration</strong>
+					<p>
+						Server actions call <code>@korala/api-client</code>. React embeds
+						use <code>KoralaSigner</code> and <code>KoralaTemplateEditor</code>.
+						The packet opens its API-issued hosted URL in an iframe.
+					</p>
+					<a
+						href="https://github.com/korala-ai/doc-signing-example"
+						target="_blank"
+						rel="noreferrer"
+					>
+						View source on GitHub ↗
+					</a>
+				</aside>
+			</main>
+			<footer>
+				<span>A local integration example using synthetic documents.</span>
+				<a href="https://docs.korala.ai/guides/template-preparation">
+					Template preparation guide ↗
+				</a>
+			</footer>
+		</>
+	);
 }

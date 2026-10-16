@@ -1,35 +1,16 @@
 import type { Metadata } from 'next';
-import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
-
-const geistSans = Geist({
-  variable: '--font-geist-sans',
-  subsets: ['latin'],
-});
-
-const geistMono = Geist_Mono({
-  variable: '--font-geist-mono',
-  subsets: ['latin'],
-});
-
 export const metadata: Metadata = {
-  title: 'Korala Integration Example',
-  description:
-    'Example Next.js app demonstrating Korala document signing integration',
+	title: 'Korala integration examples',
+	description:
+		'Working Next.js examples for embedded signing, PDF template preparation, multiple signers, and signing packets.',
 };
-
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
-  return (
-    <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        {children}
-      </body>
-    </html>
-  );
+export default function Layout({
+	children,
+}: Readonly<{ children: React.ReactNode }>) {
+	return (
+		<html lang="en">
+			<body>{children}</body>
+		</html>
+	);
 }
